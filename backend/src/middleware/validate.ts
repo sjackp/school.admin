@@ -21,8 +21,9 @@ export const validateQuery =
   (req: Request, res: Response, next: NextFunction): void => {
     try {
       const parsed = schema.parse(req.query);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (req.query as any) = parsed;
+      // Clear existing properties and assign parsed values
+      Object.keys(req.query).forEach(key => delete (req.query as any)[key]);
+      Object.assign(req.query, parsed);
       next();
     } catch (err) {
       if (err instanceof ZodError) {
