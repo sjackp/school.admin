@@ -1,0 +1,27 @@
+{
+  "appName": "Umm Al-Mu'mineen Private School Admin",
+  "login": {
+    "title": "Sign In",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Login",
+    "error": "Invalid credentials"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "studentsByStage": "Students by Stage",
+    "genderDistribution": "Gender Distribution",
+    "pendingSubmissions": "Pending Enrollment Requests",
+    "quickActions": "Quick Actions"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "students": "Students",
+    "enrollments": "Enrollments",
+    "reports": "Reports",
+    "settings": "Settings",
+    "logout": "Logout"
+  }
+}
+
+

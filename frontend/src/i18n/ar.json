@@ -1,0 +1,27 @@
+{
+  "appName": "لوحة إدارة مدرسة أم المؤمنين الخاصة",
+  "login": {
+    "title": "تسجيل الدخول",
+    "username": "اسم المستخدم",
+    "password": "كلمة المرور",
+    "submit": "دخول",
+    "error": "بيانات الدخول غير صحيحة"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "studentsByStage": "عدد الطلاب حسب المرحلة",
+    "genderDistribution": "توزيع الطلاب حسب النوع",
+    "pendingSubmissions": "طلبات الالتحاق المعلقة",
+    "quickActions": "إجراءات سريعة"
+  },
+  "navigation": {
+    "dashboard": "الرئيسية",
+    "students": "الطلاب",
+    "enrollments": "الالتحاقات",
+    "reports": "التقارير",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج"
+  }
+}
+
+
