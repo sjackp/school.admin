@@ -1,4 +1,7 @@
-import "dotenv/config";
+import { config } from "dotenv";
+import { resolve } from "path";
+config({ path: resolve(__dirname, "../../.env") });
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -31,18 +34,18 @@ app.get("/health", (_req, res) => {
 });
 
 // Public routes
-app.use("/api/public", publicRouter);
+app.use("/public", publicRouter);
 
 // Auth routes (login, me)
-app.use("/api/auth", authRouter);
+app.use("/auth", authRouter);
 
 // Protected routes
-app.use("/api", authMiddleware);
-app.use("/api/students", studentsRouter);
-app.use("/api/enrollments", enrollmentsRouter);
-app.use("/api/submissions", submissionsRouter);
-app.use("/api/reports", reportsRouter);
-app.use("/api/users", usersRouter);
+app.use(authMiddleware);
+app.use("/students", studentsRouter);
+app.use("/enrollments", enrollmentsRouter);
+app.use("/submissions", submissionsRouter);
+app.use("/reports", reportsRouter);
+app.use("/users", usersRouter);
 
 // Error handler
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

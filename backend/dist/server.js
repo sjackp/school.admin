@@ -3,7 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("dotenv/config");
+const dotenv_1 = require("dotenv");
+const path_1 = require("path");
+(0, dotenv_1.config)({ path: (0, path_1.resolve)(__dirname, "../../.env") });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
@@ -29,16 +31,16 @@ app.get("/health", (_req, res) => {
     res.json({ status: "ok" });
 });
 // Public routes
-app.use("/api/public", public_1.publicRouter);
+app.use("/public", public_1.publicRouter);
 // Auth routes (login, me)
-app.use("/api/auth", auth_1.authRouter);
+app.use("/auth", auth_1.authRouter);
 // Protected routes
-app.use("/api", auth_2.authMiddleware);
-app.use("/api/students", students_1.studentsRouter);
-app.use("/api/enrollments", enrollments_1.enrollmentsRouter);
-app.use("/api/submissions", submissions_1.submissionsRouter);
-app.use("/api/reports", reports_1.reportsRouter);
-app.use("/api/users", users_1.usersRouter);
+app.use(auth_2.authMiddleware);
+app.use("/students", students_1.studentsRouter);
+app.use("/enrollments", enrollments_1.enrollmentsRouter);
+app.use("/submissions", submissions_1.submissionsRouter);
+app.use("/reports", reports_1.reportsRouter);
+app.use("/users", users_1.usersRouter);
 // Error handler
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err, _req, res, _next) => {

@@ -8,49 +8,91 @@ const rbac_1 = require("../middleware/rbac");
 const db_1 = require("../lib/db");
 const audit_1 = require("../lib/audit");
 exports.studentsRouter = (0, express_1.Router)();
+// Helper to build a broad search condition across many student/enrollment fields
+function buildSearchWhere(paramIndex) {
+    const p = `$${paramIndex}`;
+    return `(
+    s.full_name_ar ILIKE ${p}
+    OR s.national_id ILIKE ${p}
+    OR COALESCE(s.father_phone, '') ILIKE ${p}
+    OR COALESCE(s.mother_phone, '') ILIKE ${p}
+    OR COALESCE(s.address, '') ILIKE ${p}
+    OR COALESCE(e.academic_year, '') ILIKE ${p}
+    OR COALESCE(e.stage_ar, '') ILIKE ${p}
+    OR COALESCE(e.grade_ar, '') ILIKE ${p}
+    OR COALESCE(e.class_label, '') ILIKE ${p}
+    OR COALESCE(e.student_code, '') ILIKE ${p}
+    OR COALESCE(e.registration_number, '') ILIKE ${p}
+  )`;
+}
+// Normalize search text (e.g., convert Arabic-Indic digits to ASCII)
+function normalizeSearchText(value) {
+    const arabicDigits = {
+        "٠": "0",
+        "١": "1",
+        "٢": "2",
+        "٣": "3",
+        "٤": "4",
+        "٥": "5",
+        "٦": "6",
+        "٧": "7",
+        "٨": "8",
+        "٩": "9",
+    };
+    return value.replace(/[٠-٩]/g, (d) => arabicDigits[d] ?? d);
+}
 // List students with filters
 exports.studentsRouter.get("/", (0, rbac_1.requireRole)(["admin", "editor", "viewer"]), (0, validate_1.validateQuery)(validations_1.studentFilterSchema), async (req, res) => {
-    const { search, stage_ar, grade_ar, academic_year, gender, page, pageSize } = req.query;
-    const where = [];
-    const params = [];
-    if (search) {
-        params.push(`%${search}%`);
-        where.push("(s.full_name_ar ILIKE $" + params.length + " OR s.national_id ILIKE $" + params.length + ")");
+    try {
+        const { search, stage_ar, grade_ar, academic_year, gender, page, pageSize } = req.query;
+        const where = [];
+        const params = [];
+        if (search && String(search).trim()) {
+            const normalized = normalizeSearchText(String(search).trim());
+            const pattern = `%${normalized}%`;
+            params.push(pattern);
+            where.push(buildSearchWhere(params.length));
+        }
+        if (gender) {
+            params.push(gender);
+            where.push("s.gender = $" + params.length);
+        }
+        if (stage_ar) {
+            params.push(stage_ar);
+            where.push("e.stage_ar = $" + params.length);
+        }
+        if (grade_ar) {
+            params.push(grade_ar);
+            where.push("e.grade_ar = $" + params.length);
+        }
+        if (academic_year) {
+            params.push(academic_year);
+            where.push("e.academic_year = $" + params.length);
+        }
+        const offset = (page - 1) * pageSize;
+        params.push(pageSize, offset);
+        const whereSql = where.length ? "WHERE " + where.join(" AND ") : "";
+        // Use DISTINCT ON to get one row per student (latest enrollment)
+        const students = await (0, db_1.query)(`
+        SELECT DISTINCT ON (s.national_id)
+          s.*,
+          e.academic_year,
+          e.stage_ar,
+          e.grade_ar,
+          e.class_label
+        FROM public.students s
+        LEFT JOIN public.student_enrollments e
+          ON e.student_national_id = s.national_id
+        ${whereSql}
+        ORDER BY s.national_id, e.academic_year DESC NULLS LAST
+        LIMIT $${params.length - 1} OFFSET $${params.length}
+      `, params);
+        res.json({ data: students.rows });
     }
-    if (gender) {
-        params.push(gender);
-        where.push("s.gender = $" + params.length);
+    catch (err) {
+        console.error("Error fetching students:", err);
+        res.status(500).json({ error: "Internal server error", details: err.message });
     }
-    if (stage_ar) {
-        params.push(stage_ar);
-        where.push("e.stage_ar = $" + params.length);
-    }
-    if (grade_ar) {
-        params.push(grade_ar);
-        where.push("e.grade_ar = $" + params.length);
-    }
-    if (academic_year) {
-        params.push(academic_year);
-        where.push("e.academic_year = $" + params.length);
-    }
-    const offset = (page - 1) * pageSize;
-    params.push(pageSize, offset);
-    const whereSql = where.length ? "WHERE " + where.join(" AND ") : "";
-    const students = await (0, db_1.query)(`
-      SELECT
-        s.*,
-        e.academic_year,
-        e.stage_ar,
-        e.grade_ar,
-        e.class_label
-      FROM public.students s
-      LEFT JOIN public.student_enrollments e
-        ON e.student_national_id = s.national_id
-      ${whereSql}
-      ORDER BY s.full_name_ar
-      LIMIT $${params.length - 1} OFFSET $${params.length}
-    `, params);
-    res.json({ data: students.rows });
 });
 // Create student
 exports.studentsRouter.post("/", (0, rbac_1.requireRole)(["admin", "editor"]), (0, validate_1.validateBody)(validations_1.createStudentSchema), async (req, res) => {

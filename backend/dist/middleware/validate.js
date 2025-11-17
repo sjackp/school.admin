@@ -19,8 +19,9 @@ exports.validateBody = validateBody;
 const validateQuery = (schema) => (req, res, next) => {
     try {
         const parsed = schema.parse(req.query);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        req.query = parsed;
+        // Clear existing properties and assign parsed values
+        Object.keys(req.query).forEach(key => delete req.query[key]);
+        Object.assign(req.query, parsed);
         next();
     }
     catch (err) {

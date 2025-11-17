@@ -30,7 +30,7 @@ exports.studentFilterSchema = zod_1.z.object({
     academic_year: zod_1.z.string().optional(),
     gender: zod_1.z.string().optional(),
     page: zod_1.z.coerce.number().int().min(1).default(1),
-    pageSize: zod_1.z.coerce.number().int().min(1).max(100).default(50),
+    pageSize: zod_1.z.coerce.number().int().min(1).max(1000).default(50),
 });
 exports.createStudentSchema = zod_1.z.object({
     national_id: zod_1.z.string().min(1),

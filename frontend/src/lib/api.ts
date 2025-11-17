@@ -32,12 +32,22 @@ export const api = {
       body: JSON.stringify({ username, password }),
     }),
   me: () => request<{ user: any }>("/auth/me"),
-  overview: () => request<{
+  overview: () =>
+    request<{
     totalByStage: { stage_ar: string; count: number }[];
     genderDistribution: { gender: string; count: number }[];
     pendingSubmissions: number;
-  }>("/reports/overview"),
-  studentsList: () => request<{ data: any[] }>("/students"),
+    }>("/reports/overview"),
+  studentsList: (params?: { search?: string; page?: number; pageSize?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.search) query.set("search", params.search);
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.pageSize) query.set("pageSize", String(params.pageSize));
+
+    const qs = query.toString();
+    const path = qs ? `/students?${qs}` : "/students";
+    return request<{ data: any[] }>(path);
+  },
 };
 
 
